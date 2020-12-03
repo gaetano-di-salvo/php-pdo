@@ -1,27 +1,27 @@
 <?php
 
-try
-{
-  echo 'connection db...';
-  echo nl2br("\n");
-	// On se connecte à MySQL
-  $pdo = new PDO('mysql:host=localhost;dbname=weatherapp;charset=utf8','phpmyadmin','test');
+require_once('db-connect.php');
 
-  // for error handling in the try and catch
-  $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        
+// handle GET result of form POST
+// ------------------------------ 
+
+if ( (isset($_GET['result'])) ){
+  echo nl2br("\n"); 
+  $result = filter_var($_GET['result'], FILTER_SANITIZE_STRING); 
+  echo "Résultat de l'opération d'ajout : ".$result;
+  echo nl2br("\n"); 
+  echo nl2br("\n");  
+} else {
+  //for debug purpose...
+  //echo "GET is not set...";
+  //echo nl2br("\n");  
 }
-catch(Exception $e)
-{
-	// En cas d'erreur, on affiche un message et on arrête tout
-        die('Erreur : '.$e->getMessage());
-}
 
-echo 'GET msg err : ';
-echo $_GET['err'];
-echo nl2br("\n");
+// handle form POST
+// ----------------
 
-if ( (isset($_POST[ville])) && (isset($_POST[haut])) && (isset($_POST[bas])) ){
+if ( (isset($_POST['ville'])) && (isset($_POST['haut'])) && (isset($_POST['bas'])) ){
+// if ( (isset($_POST['ville']) && !empty(trim($_POST['ville']))) && (isset($_POST['haut']) && !empty(trim($_POST['haut']))) && (isset($_POST['bas']) && !empty(trim($_POST['bas']))) ){
   echo 'le formulaire est soumis par POST';
   echo nl2br("\n");
   // sanitize
@@ -31,35 +31,46 @@ if ( (isset($_POST[ville])) && (isset($_POST[haut])) && (isset($_POST[bas])) ){
   
   // validate
 
+  
+  // echo 'Nous allons insérer les valeurs suivantes : ';
+  // echo nl2br("\n");
+  // echo 'ville: '.$ville;
+  // echo nl2br("\n");
+  // echo 'haut: '.$haut;
+  // echo nl2br("\n");
+  // echo 'bas: '.$bas;
+  // echo nl2br("\n");
 
   // insert into table
-  echo 'Nous allons insérer les valeurs suivantes : ';
-  echo 'ville: '.$ville;
-  echo nl2br("\n");
-  echo 'haut: '.$haut;
-  echo nl2br("\n");
-  echo 'bas: '.$bas;
-  echo nl2br("\n");
-
+  // -----------------
   $sql = "INSERT INTO `Météo` (ville, haut, bas) 
   VALUES (:ville, :haut, :bas)";
 
   $stmt = $pdo->prepare($sql);
 
+  $is_error = false;
   try {
   $stmt->execute(array('ville' => $ville, 'haut' => $haut, 'bas' => $bas));
-  } catch (PDOException $e) {
+  } 
+  catch (PDOException $e) {
     //Do your error handling here
-    $message = $e->getMessage();
-    echo 'Insert Error, check the validity of your data.';    
-    //header('Location: '.$_SERVER['PHP_SELF']);
-    //$_POST = array();
-    //header('Location: index.php?error='.$err);
+    $is_error = true;
+    //$message = $e->getMessage();        
+  }
+  
+  if ($is_error){
+    $result = 'Insert Error, check the validity of your data please! [Ville: '.$ville.'], [Haut: '.$haut.'], [Bas: '.$bas.']';    
+  } else {
+    $result = 'A New record is well added in the Database';    
   }
 
+  // redirect the result info to self page with GET
+  header('Location: index.php?result='.$result);
+
 } else {
-  echo "le formulaire n'est pas encore soumis";
-  echo nl2br("\n");  
+  // for debug purpose
+  //echo "le formulaire n'est pas encore soumis";
+  //echo nl2br("\n");  
 }
 
 // requête de sélection
@@ -109,13 +120,13 @@ $resultat = $pdo->query('SELECT * FROM `Météo`');
     <p>Ajouter une ville et ses températures</p>
     <form action="index.php" method="post">
       <label for="ville">Ville:</label><br>
-      <input type="text" id="ville" name="ville" value=""><br>
+      <input type="text" id="ville" name="ville" value="" ><br>
 
       <label for="bas">bas:</label><br>
-      <input type="text" id="bas" name="bas" value=""><br>
+      <input type="text" id="bas" name="bas" value="" ><br>
       
       <label for="haut">Haut:</label><br>
-      <input type="text" id="haut" name="haut" value=""><br><br>
+      <input type="text" id="haut" name="haut" value="" ><br><br>
       
       <input type="submit" value="submit">
     </form> 
