@@ -4,6 +4,7 @@ Exercice PHP / MySQL
 Objectif
 
 Exercice pratique visant la maîtrise de la librairie php "PDO" pour manipuler des bases de données via PHP.
+
 Pré-requis
 
     LAMP installé et fonctionnel
